@@ -12,15 +12,17 @@ void *read_tail(void *ptr_input) {
   struct tail_input *t_input = (struct tail_input *)ptr_input;
   FILE *fp;
   char *data = NULL;
-  if ((fp = fopen((*t_input).filename, "r")) == NULL)
+  fp = fopen((*t_input).filename, "r");
+  if (fp == NULL)
     printf("Error on file %s\n", (*t_input).filename);
   else if (verify_binary_file(fp) == 0) {
     /* Not a binary file */
     data = tail(t_input);
+    fclose(fp);
   } else
-    printf("File %s is can't be readed, is a binary file!", (*t_input).filename);
+    printf("File %s is can't be readed, is a binary file!",
+           (*t_input).filename);
 
-  fclose(fp);
   return (void *)data;
 }
 

@@ -34,5 +34,9 @@ void test_09( int n );
 void test_10( int n );
 /* ============================== */
 
+void test_performance_insert(int max);
+
+void test_performance(int max);
+
 int main();
 

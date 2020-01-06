@@ -64,16 +64,19 @@ log_file *sub_array(log_file *B, int new_size, int size_used, int counter) {
   printf("\nNew list data after FIRST memcopy-> ");
   print_log_file_list(new_list, new_size);
 #endif
-  /* Copy everything starting from the end of the size that we have copied
-   * before from counter until the last element that the array contains */
-  printf("\nCopying %d elements starting from %d", (size_used - counter - 1),
-         counter + 1);
-  memmove(&new_list[counter], &B[counter + 1],
-          (new_size - counter - 1) * sizeof(log_file));
+  // Copy the rest of the array only if we haven't remove the latest node
+  if (counter != size_used) {
+    /* Copy everything starting from the end of the size that we have copied
+     * before from counter until the last element that the array contains */
+    printf("\nCopying %d elements starting from %d", (size_used - counter - 1),
+           counter + 1);
+    memmove(&new_list[counter], &B[counter + 1],
+            (new_size - counter - 1) * sizeof(log_file));
 #ifdef DEBUG
-  printf("\nNew list data after SECOND memcopy-> ");
-  print_log_file_list(new_list, new_size);
+    printf("\nNew list data after SECOND memcopy-> ");
+    print_log_file_list(new_list, new_size);
 #endif
+  }
   /* We have deleted a value, so we decrease the number of element*/
   --size_used;
   if (counter == new_size)
@@ -209,12 +212,9 @@ void add_node(struct list **data, char *name, char *path) {
   } else if /* check if is necessary to allocate a new element */
       ((*data)->size == (*data)->max_size) {
     /* List have reached the maximum space! Allocate some new fresh memory */
-    /* Access and save the old size */
-    int old_max_size = (*data)->max_size;
-    /* Increase the size by a constant factor */
-    int new_size = old_max_size + DEFAULT_INC;
-    //   printf("\nadd_node | Allocate a new space for store %d", value);
 
+    /* Increase the size by a constant factor */
+    int new_size = (*data)->max_size + DEFAULT_INC;
     /*Allocate a new space for the data */
     (*data)->array = realloc((*data)->array, new_size * sizeof(log_file));
     /* Set the new max size*/
@@ -256,6 +256,33 @@ void remove_node(struct list **data, char *name) {
     ++counter;
   }
   printf("\nRemove_node | Data [%s] not found ... ", name);
+}
+
+void remove_node_by_index(struct list **data, int i) {
+  /* Be sure that the list and the array are (at least) allocated */
+  if (*data == NULL || (*data)->array == NULL) {
+    printf("\nremove_node | LIST EMPTY!");
+    return;
+  }
+  // The index pointed by data->size is empty
+  if (i < (*data)->size) {
+    /* Delete the address copying the memory before and after the counter */
+    const int new_size = (*data)->max_size;
+    /* This will contains the new data */
+    log_file *new_list = sub_array((*data)->array, new_size, (*data)->size, i);
+    /* Free the data */
+    free((*data)->array);
+    /* Copy the pointer to the data*/
+    (*data)->array = new_list;
+    /* Set the new max size*/
+    (*data)->max_size = new_size;
+    /* Decrease counter of the size */
+    --(*data)->size;
+    printf("\nremove_node | Value [%s] | POS: [%d] | Removed!\n",
+           (*data)->array[i].name, i);
+  } else {
+    printf("\nRemove_node | Index [%d] out of bounds\n", i);
+  }
 }
 
 struct list *init_n_node(int n) {
